@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  service_nginx:
+    image: nginx:alpine
+    restart: always
+    env_file:
+      - .env.example
+      - .env
+    volumes:
+      - ./app/:/app
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/nginx/fastcgi.conf:/etc/nginx/fastcgi.conf
+      - ./docker/nginx/fastcgi-php.conf:/etc/nginx/fastcgi-php.conf
+    ports:
+      - ${SERVICE_NGINX_HTTP_PORTS}
+    depends_on:
+      - service_php
+
+  service_php:
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    working_dir: /app
+    restart: always
+    env_file:
+      - .env.example
+      - .env
+    volumes:
+      - ./app/:/app
+      - .env/:/app/.env
+      - ./docker/php/php.ini:/etc/php/${PHP_VERSION}/cli/conf.d/99-custom.ini
+      - ./docker/php/php.ini:/etc/php/${PHP_VERSION}/fpm/conf.d/99-custom.ini
